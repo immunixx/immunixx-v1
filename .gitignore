@@ -1,0 +1,11 @@
+node_modules/
+project/node_modules/
+project/backend/.venv/
+project/backend/__pycache__/
+project/backend/*.pyc
+project/backend/uploads/
+project/backend/reports/
+project/dist/
+project/.vite/
+.DS_Store
+Thumbs.db
