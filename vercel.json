@@ -1,8 +1,7 @@
 {
-  "buildCommand": "cd project && npm install && npm run build",
+  "buildCommand": "npm install --prefix project && npm run build --prefix project",
   "outputDirectory": "project/dist",
-  "devCommand": "cd project && npm run dev",
-  "framework": "vite",
+  "devCommand": "npm run dev --prefix project",
   "rewrites": [
     {
       "source": "/(.*)",
