@@ -18,6 +18,7 @@ export const generatePDFReport = async (results: AnalysisResult, imagePreview?: 
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const W = 210, margin = 18;
   const overallStatus = results.cell_types.every(c => isNormal(c.percentage, c.cell_type)) ? 'Normal' : 'Review Required';
+  const patient = results.patient_details;
 
   // Header bar
   doc.setFillColor(46, 158, 80);
@@ -33,47 +34,61 @@ export const generatePDFReport = async (results: AnalysisResult, imagePreview?: 
 
   // Patient info box
   doc.setFillColor(241, 253, 244);
-  doc.roundedRect(margin, 40, W - margin * 2, 22, 3, 3, 'F');
+  doc.roundedRect(margin, 40, W - margin * 2, 34, 3, 3, 'F');
   doc.setTextColor(31, 41, 55);
-  doc.setFontSize(9);
+  doc.setFontSize(8.5);
   doc.setFont('helvetica', 'bold');
-  doc.text(`Patient ID: ${results.patient_id}`, margin + 4, 49);
-  doc.text(`Model Version: ${results.results.model_version}`, margin + 4, 55);
-  doc.text(`Processing Time: ${results.results.processing_time}s`, W / 2, 49);
-  doc.text(`Total WBC Count: ${results.total_count}`, W / 2, 55);
+  doc.text(`Patient ID: ${results.patient_id}`, margin + 4, 48);
+  doc.text(`Model Version: ${results.results.model_version}`, margin + 4, 54);
+  doc.text(`Processing Time: ${results.results.processing_time}s`, margin + 4, 60);
+  doc.text(`Total WBC Count: ${results.total_count}`, margin + 4, 66);
+
+  doc.setFont('helvetica', 'normal');
+  if (patient) {
+    const rightColX = W / 2 + 4;
+    doc.text(`Name: ${patient.name}`, rightColX, 48);
+    doc.text(`Age: ${patient.age}`, rightColX, 54);
+    doc.text(`Mobile: ${patient.mobileNumber}`, rightColX, 60);
+    doc.text(`Emergency: ${patient.emergencyContact}`, rightColX, 66);
+
+    const addressLines = doc.splitTextToSize(`Address: ${patient.address}`, W - margin * 2 - 8);
+    doc.text(addressLines, margin + 4, 72);
+  } else {
+    doc.text('Patient details not provided', W / 2 + 4, 60);
+  }
 
   // Embedded image
   if (imagePreview) {
     try {
       doc.setFillColor(249, 250, 251);
-      doc.roundedRect(margin, 68, 60, 50, 2, 2, 'F');
-      doc.addImage(imagePreview, 'JPEG', margin + 1, 69, 58, 48);
+      doc.roundedRect(margin, 82, 60, 50, 2, 2, 'F');
+      doc.addImage(imagePreview, 'JPEG', margin + 1, 83, 58, 48);
       doc.setFontSize(8);
       doc.setTextColor(107, 114, 128);
-      doc.text('Blood Smear Image', margin + 20, 120);
+      doc.text('Blood Smear Image', margin + 20, 134);
     } catch (_) { /* image embed optional */ }
   }
 
   // Primary result summary
   const sumX = margin + 66;
   doc.setFillColor(220, 245, 227);
-  doc.roundedRect(sumX, 68, W - margin - sumX, 50, 2, 2, 'F');
+  doc.roundedRect(sumX, 82, W - margin - sumX, 50, 2, 2, 'F');
   doc.setTextColor(31, 41, 55);
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
-  doc.text('Primary WBC Detected', sumX + 4, 78);
+  doc.text('Primary WBC Detected', sumX + 4, 92);
   doc.setFontSize(15);
   doc.setTextColor(22, 101, 52);
-  doc.text(results.dominant_type, sumX + 4, 88);
+  doc.text(results.dominant_type, sumX + 4, 102);
   doc.setFontSize(9);
   doc.setTextColor(55, 65, 81);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Confidence: ${(results.dominant_confidence * 100).toFixed(1)}%`, sumX + 4, 96);
-  doc.text(`Overall Status: ${overallStatus}`, sumX + 4, 103);
-  doc.text(`Analysis Date: ${new Date(results.timestamp).toLocaleDateString()}`, sumX + 4, 110);
+  doc.text(`Confidence: ${(results.dominant_confidence * 100).toFixed(1)}%`, sumX + 4, 110);
+  doc.text(`Overall Status: ${overallStatus}`, sumX + 4, 117);
+  doc.text(`Analysis Date: ${new Date(results.timestamp).toLocaleDateString()}`, sumX + 4, 124);
 
   // Table
-  let y = 128;
+  let y = 142;
   doc.setFillColor(46, 158, 80);
   doc.rect(margin, y, W - margin * 2, 8, 'F');
   doc.setTextColor(255, 255, 255);

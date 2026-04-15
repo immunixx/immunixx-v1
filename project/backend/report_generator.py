@@ -49,6 +49,16 @@ def generate_pdf_report(output_path, analysis_data, image_path):
         ["Total WBC Count:", str(analysis_data.get("total_count", 0))]
     ]
 
+    patient_details = analysis_data.get("patient_details", {}) or {}
+    if patient_details:
+        info_data.extend([
+            ["Patient Name:", patient_details.get("name", "N/A")],
+            ["Age:", patient_details.get("age", "N/A")],
+            ["Mobile Number:", patient_details.get("mobileNumber", "N/A")],
+            ["Emergency Contact:", patient_details.get("emergencyContact", "N/A")],
+            ["Address:", patient_details.get("address", "N/A")],
+        ])
+
     info_table = Table(info_data, colWidths=[2*inch, 4*inch])
     info_table.setStyle(TableStyle([
         ('FONT', (0, 0), (0, -1), 'Helvetica-Bold', 11),

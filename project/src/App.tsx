@@ -2,12 +2,16 @@ import { useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import SiteNavbar from './components/SiteNavbar';
 import Home from './components/Home';
+import About from './components/About';
+import PatientLogin from './components/PatientLogin';
 import ImageUpload from './components/ImageUpload';
 import LoadingAnalysis from './components/LoadingAnalysis';
 import Results from './components/Results';
 import History from './components/History';
 import { analyzeImage } from './services/api';
-import { AnalysisResult } from './types';
+import { AnalysisResult, PatientDetails } from './types';
+
+const PATIENT_DETAILS_KEY = 'wbc_analyzer_patient_details';
 
 function App() {
   const navigate = useNavigate();
@@ -15,23 +19,38 @@ function App() {
 
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [imagePreview, setImagePreview]   = useState<string>('');
+  const [patientDetails, setPatientDetails] = useState<PatientDetails | null>(() => {
+    const stored = localStorage.getItem(PATIENT_DETAILS_KEY);
+    return stored ? JSON.parse(stored) : null;
+  });
   const pathname = location.pathname;
 
   const activeNavView = pathname === '/history'
     ? 'records'
     : pathname === '/about'
       ? 'about'
+      : pathname === '/login'
+        ? 'login'
       : pathname === '/'
         ? 'home'
         : 'demo';
 
   useEffect(() => {
-    if (pathname === '/about') {
-      document.getElementById('about')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (patientDetails) {
+      localStorage.setItem(PATIENT_DETAILS_KEY, JSON.stringify(patientDetails));
+    } else {
+      localStorage.removeItem(PATIENT_DETAILS_KEY);
     }
-  }, [pathname]);
+  }, [patientDetails]);
 
-  const handleStartAnalysis = () => navigate('/demo');
+  const handleStartAnalysis = () => navigate('/login');
+
+  const handlePatientSave = (details: PatientDetails) => {
+    setPatientDetails(details);
+    setAnalysisResult(null);
+    setImagePreview('');
+    navigate('/demo');
+  };
 
   const handleGoHome = () => {
     navigate('/');
@@ -46,7 +65,7 @@ function App() {
   };
 
   const handleGoDemo = () => {
-    navigate('/demo');
+    navigate(patientDetails ? '/demo' : '/login');
     setAnalysisResult(null);
     setImagePreview('');
   };
@@ -55,11 +74,11 @@ function App() {
     navigate('/loading');
     setImagePreview(preview);
     try {
-      const result = await analyzeImage(file);
-      setAnalysisResult({ ...result, image_path: preview });
+      const result = await analyzeImage(file, patientDetails ?? undefined);
+      setAnalysisResult({ ...result, image_path: preview, patient_details: patientDetails ?? undefined });
       navigate('/results');
     } catch {
-      navigate('/demo');
+      navigate(patientDetails ? '/demo' : '/login');
     }
   };
 
@@ -95,8 +114,23 @@ function App() {
 
       <Routes>
         <Route path="/" element={<Home onStartAnalysis={handleStartAnalysis} onViewHistory={handleViewHistory} />} />
-        <Route path="/about" element={<Home onStartAnalysis={handleStartAnalysis} onViewHistory={handleViewHistory} />} />
-        <Route path="/demo" element={<ImageUpload onImageSelect={handleImageSelect} onBack={handleBackToHome} />} />
+        <Route path="/about" element={<About onStartAnalysis={handleStartAnalysis} onViewHistory={handleViewHistory} />} />
+        <Route
+          path="/login"
+          element={
+            <PatientLogin
+              initialDetails={patientDetails}
+              onSave={handlePatientSave}
+              onBack={handleGoHome}
+            />
+          }
+        />
+        <Route
+          path="/demo"
+          element={patientDetails
+            ? <ImageUpload onImageSelect={handleImageSelect} onBack={handleBackToHome} />
+            : <Navigate to="/login" replace />}
+        />
         <Route path="/loading" element={<LoadingAnalysis />} />
         <Route
           path="/results"

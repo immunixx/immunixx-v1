@@ -5,6 +5,8 @@ project/backend/__pycache__/
 project/backend/*.pyc
 project/backend/uploads/
 project/backend/reports/
+project/backend/dataset/
+project/archive/
 project/dist/
 project/.vite/
 .DS_Store

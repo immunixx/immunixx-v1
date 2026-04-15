@@ -1,4 +1,4 @@
-import { Activity, FileText, Upload, Microscope, ArrowRight } from 'lucide-react';
+import { Activity, FileText, Upload, Microscope, ArrowRight, HeartPulse, FileSpreadsheet, Stethoscope } from 'lucide-react';
 
 interface HomeProps {
   onStartAnalysis: () => void;
@@ -33,6 +33,33 @@ function Home({ onStartAnalysis, onViewHistory }: HomeProps) {
             A refined image-driven platform for precise white blood cell classification and analysis.
             Upload your blood smear images to receive instant, detailed WBC differential count reports.
           </p>
+        </div>
+
+        {/* ── HIGHLIGHT CARDS ── */}
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-3 mb-12">
+          <div className="bg-white rounded-2xl p-6 text-center shadow-sm border border-green-100">
+            <HeartPulse className="w-8 h-8 text-green-600 mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Faster Clinical Insight</h3>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              We help healthcare providers reduce diagnostic delays and improve workflow efficiency.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-2xl p-6 text-center shadow-sm border border-green-100">
+            <FileSpreadsheet className="w-8 h-8 text-green-600 mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Structured Reporting</h3>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              The platform generates detailed WBC reports that can be downloaded and reviewed later.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-2xl p-6 text-center shadow-sm border border-green-100">
+            <Stethoscope className="w-8 h-8 text-green-600 mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Accessible Analysis</h3>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              Our goal is to make high-quality blood analysis more accessible beyond centralized laboratories.
+            </p>
+          </div>
         </div>
 
         {/* ── FEATURE CARDS ── */}
@@ -127,62 +154,6 @@ function Home({ onStartAnalysis, onViewHistory }: HomeProps) {
           </button>
         </div>
 
-        {/* ── ABOUT SECTION ── */}
-        <div id="about" className="animate-fadeIn" style={{ animationDelay: '200ms' }}>
-          <div className="pro-surface rounded-3xl p-6 sm:p-10 md:p-14 relative overflow-hidden">
-
-            {/* shimmer top border */}
-            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl"
-              style={{ background: 'linear-gradient(90deg, #4caf6a, #2e9e50, #4caf6a)', backgroundSize: '200%', animation: 'shimmer 2.5s linear infinite' }} />
-
-            <span className="inline-block bg-green-100 text-green-700 text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full mb-3">About</span>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-gray-800 mb-4 tracking-tight">About Immunixx</h2>
-            <div className="space-y-4 text-gray-500 leading-relaxed">
-              <p>
-                Immunixx is a health technology platform focused on modernizing white blood cell (WBC) analysis through advanced image-based diagnostics.
-              </p>
-              <p>
-                We help healthcare providers reduce diagnostic delays, improve workflow efficiency, and deliver faster clinical insights using a streamlined digital analysis platform.
-              </p>
-              <p>
-                Our goal is to make high-quality blood analysis accessible beyond centralized laboratories.
-              </p>
-            </div>
-
-            <div className="mt-10 pt-8 border-t border-dashed border-gray-200">
-              <h3 className="text-xl md:text-2xl font-extrabold text-gray-800 mb-4 tracking-tight">Clinical Challenges</h3>
-              <div className="space-y-4 text-gray-500 leading-relaxed">
-                <p>
-                  White blood cell analysis is essential for detecting infections, immune responses, and hematological abnormalities.
-                </p>
-                <p>
-                  However, current diagnostic workflows face several challenges:
-                </p>
-                <ul className="space-y-3">
-                  <li>• Conventional hematology analyzers are expensive and laboratory-bound</li>
-                  <li>• Manual microscopy requires skilled technicians and significant time</li>
-                  <li>• Diagnostic workflows may experience delays during high workloads</li>
-                  <li>• Smaller clinics often lack access to advanced laboratory infrastructure</li>
-                </ul>
-                <p>
-                  These limitations can slow down clinical decision-making when time matters most.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-10 pt-8 border-t border-dashed border-gray-200">
-              <h3 className="text-xl md:text-2xl font-extrabold text-gray-800 mb-4 tracking-tight">Our Solution</h3>
-              <div className="space-y-4 text-gray-500 leading-relaxed">
-                <p>
-                  Immunixx provides a portable and scalable platform that analyzes peripheral blood smear images and delivers structured results in near real time.
-                </p>
-                <p>
-                  The system is designed to support hospitals, laboratories, emergency units, and decentralized healthcare environments.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* ── FOOTER ── */}

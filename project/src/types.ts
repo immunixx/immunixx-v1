@@ -5,11 +5,20 @@ export interface CellType {
   confidence: number;
 }
 
+export interface PatientDetails {
+  name: string;
+  age: string;
+  mobileNumber: string;
+  address: string;
+  emergencyContact: string;
+}
+
 export interface AnalysisResult {
   id: string;
   patient_id: string;
   timestamp: string;
   image_path: string;
+  patient_details?: PatientDetails;
   dominant_type: string;
   dominant_confidence: number;
   total_count: number;

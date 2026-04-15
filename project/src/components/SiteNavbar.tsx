@@ -1,7 +1,7 @@
 import { Home as HomeIcon, Microscope, FileText, Info } from 'lucide-react';
 import logo from '../../logo.png';
 
-type ActiveView = 'home' | 'about' | 'demo' | 'records';
+type ActiveView = 'home' | 'about' | 'demo' | 'records' | 'login';
 
 interface SiteNavbarProps {
   activeView: ActiveView;
@@ -75,6 +75,12 @@ function SiteNavbar({ activeView, onHome, onAbout, onDemo, onRecords }: SiteNavb
             active={activeView === 'records'}
             onClick={onRecords}
           />
+          <a
+            href="mailto:partners@immunixx.com?subject=Partner%20With%20Us"
+            className="ml-1 inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-green-600 bg-green-600 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white shadow-sm shadow-green-200 transition-all duration-200 hover:bg-green-700 hover:border-green-700"
+          >
+            Partner With Us
+          </a>
         </div>
       </div>
     </nav>

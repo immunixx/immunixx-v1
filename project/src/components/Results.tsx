@@ -26,6 +26,14 @@ function isNormal(pct: number, type: string): boolean {
   return r ? pct >= r.min && pct <= r.max : true;
 }
 
+function getStatus(pct: number, type: string): 'high' | 'low' | 'normal' {
+  const r = NORMAL_RANGES[type];
+  if (!r) return 'normal';
+  if (pct > r.max) return 'high';
+  if (pct < r.min) return 'low';
+  return 'normal';
+}
+
 function Results({ results, imagePreview, onNewAnalysis }: ResultsProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
@@ -34,6 +42,20 @@ function Results({ results, imagePreview, onNewAnalysis }: ResultsProps) {
   const dominantInfo = WBC_TYPES.find(w => w.cell_type === results.dominant_type);
   const maxCount = Math.max(...results.cell_types.map(c => c.count));
   const overallStatus = results.cell_types.every(c => isNormal(c.percentage, c.cell_type)) ? 'Normal' : 'Review Required';
+  const patient = results.patient_details;
+  const neutrophilCell = results.cell_types.find(cell => cell.cell_type === 'Neutrophil');
+  const lowNeutrophilPattern = !!neutrophilCell && neutrophilCell.percentage < 40;
+  const severePattern = !!neutrophilCell && neutrophilCell.percentage < 20;
+  
+  // Calculate ANC (Absolute Neutrophil Count)
+  const anc = neutrophilCell ? Math.round((results.total_count * neutrophilCell.percentage) / 100) : 0;
+  const getANCStatus = (ancValue: number): { severity: string; color: string; description: string } => {
+    if (ancValue >= 1500) return { severity: 'Normal', color: 'green', description: 'Normal neutrophil levels' };
+    if (ancValue >= 1000) return { severity: 'Mild Neutropenia', color: 'yellow', description: 'Mildly low neutrophils (1000-1500)' };
+    if (ancValue >= 500) return { severity: 'Moderate Neutropenia', color: 'orange', description: 'Moderately low neutrophils (500-1000)' };
+    return { severity: 'Severe Neutropenia', color: 'red', description: 'Severely low neutrophils (<500) - Medical emergency if fever present' };
+  };
+  const ancStatus = getANCStatus(anc);
 
   useEffect(() => {
     // Save to history when results are viewed
@@ -85,6 +107,181 @@ function Results({ results, imagePreview, onNewAnalysis }: ResultsProps) {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-6">
+
+        {/* ── PATIENT DETAILS ── */}
+        <div className="pro-surface rounded-3xl p-5 sm:p-7 animate-slideUp">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-11 h-11 bg-green-100 rounded-xl flex items-center justify-center">
+              <FileText className="w-5 h-5 text-green-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-800">Patient Details</h2>
+              <p className="text-sm text-gray-400">Information captured before analysis and included in the report</p>
+            </div>
+          </div>
+
+          {patient ? (
+            <div className="grid md:grid-cols-2 gap-4 text-sm">
+              <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4">
+                <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold mb-1">Name</p>
+                <p className="font-semibold text-gray-800">{patient.name}</p>
+              </div>
+              <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4">
+                <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold mb-1">Age</p>
+                <p className="font-semibold text-gray-800">{patient.age}</p>
+              </div>
+              <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4">
+                <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold mb-1">Mobile Number</p>
+                <p className="font-semibold text-gray-800">{patient.mobileNumber}</p>
+              </div>
+              <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4">
+                <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold mb-1">Emergency Contact</p>
+                <p className="font-semibold text-gray-800">{patient.emergencyContact}</p>
+              </div>
+              <div className="md:col-span-2 rounded-2xl bg-gray-50 border border-gray-100 p-4">
+                <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold mb-1">Address</p>
+                <p className="font-semibold text-gray-800 leading-relaxed">{patient.address}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-2xl bg-yellow-50 border border-yellow-200 p-4 text-sm text-yellow-800">
+              Patient details were not captured for this record.
+            </div>
+          )}
+        </div>
+
+        {/* ── NEUTROPHIL CALCULATION (ANC) ── */}
+        <div className="pro-surface rounded-3xl p-5 sm:p-7 animate-slideUp" style={{ animationDelay: '0.025s' }}>
+          <div className="flex items-center gap-3 mb-5">
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${
+              ancStatus.color === 'green' ? 'bg-green-100'
+              : ancStatus.color === 'yellow' ? 'bg-yellow-100'
+              : ancStatus.color === 'orange' ? 'bg-orange-100'
+              : 'bg-red-100'
+            }`}>
+              <FileText className={`w-5 h-5 ${
+                ancStatus.color === 'green' ? 'text-green-600'
+                : ancStatus.color === 'yellow' ? 'text-yellow-600'
+                : ancStatus.color === 'orange' ? 'text-orange-600'
+                : 'text-red-600'
+              }`} />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-800">Neutrophil Analysis (ANC)</h2>
+              <p className="text-sm text-gray-400">Absolute Neutrophil Count calculation and severity assessment</p>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-4">
+            {/* ANC Calculation */}
+            <div className="rounded-2xl bg-blue-50 border border-blue-200 p-5">
+              <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold mb-3">ANC Calculation</p>
+              <div className="space-y-2 text-sm text-gray-700">
+                <p><span className="font-semibold">Total WBC:</span> {results.total_count}</p>
+                <p><span className="font-semibold">Neutrophil %:</span> {neutrophilCell?.percentage.toFixed(2)}%</p>
+                <div className="border-t border-blue-200 pt-3 mt-3">
+                  <p className="text-xs text-gray-500 mb-1">ANC = (Total WBC × Neutrophil %) / 100</p>
+                  <p className="text-2xl font-bold text-blue-600">{anc}</p>
+                  <p className="text-xs text-gray-600 mt-1">cells/µL</p>
+                </div>
+              </div>
+            </div>
+
+            {/* ANC Status / Severity */}
+            <div className={`rounded-2xl border p-5 ${
+              ancStatus.color === 'green' ? 'bg-green-50 border-green-200'
+              : ancStatus.color === 'yellow' ? 'bg-yellow-50 border-yellow-200'
+              : ancStatus.color === 'orange' ? 'bg-orange-50 border-orange-200'
+              : 'bg-red-50 border-red-200'
+            }`}>
+              <p className={`text-xs uppercase tracking-wide font-semibold mb-3 ${
+                ancStatus.color === 'green' ? 'text-green-700'
+                : ancStatus.color === 'yellow' ? 'text-yellow-700'
+                : ancStatus.color === 'orange' ? 'text-orange-700'
+                : 'text-red-700'
+              }`}>Severity Classification</p>
+              <div className="space-y-3">
+                <p className={`text-lg font-bold ${
+                  ancStatus.color === 'green' ? 'text-green-700'
+                  : ancStatus.color === 'yellow' ? 'text-yellow-700'
+                  : ancStatus.color === 'orange' ? 'text-orange-700'
+                  : 'text-red-700'
+                }`}>{ancStatus.severity}</p>
+                <p className="text-sm text-gray-700">{ancStatus.description}</p>
+              </div>
+            </div>
+
+            {/* Reference Ranges */}
+            <div className="rounded-2xl bg-gray-50 border border-gray-200 p-5">
+              <p className="text-xs uppercase tracking-wide text-gray-600 font-semibold mb-3">Reference Ranges</p>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between pb-2 border-b border-gray-200">
+                  <span className="font-semibold">Normal</span>
+                  <span className="text-gray-600">&ge;1500</span>
+                </div>
+                <div className="flex justify-between pb-2 border-b border-gray-200">
+                  <span className="font-semibold">Mild</span>
+                  <span className="text-gray-600">1000-1500</span>
+                </div>
+                <div className="flex justify-between pb-2 border-b border-gray-200">
+                  <span className="font-semibold">Moderate</span>
+                  <span className="text-gray-600">500-1000</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold">Severe</span>
+                  <span className="text-gray-600">&lt;500</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── CLINICAL ALERTS ── */}
+        <div className="pro-surface rounded-3xl p-5 sm:p-7 animate-slideUp" style={{ animationDelay: '0.05s' }}>
+          <div className="flex items-center gap-3 mb-4">
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${severePattern ? 'bg-red-100' : lowNeutrophilPattern ? 'bg-amber-100' : 'bg-green-100'}`}>
+              <AlertCircle className={`w-5 h-5 ${severePattern ? 'text-red-600' : lowNeutrophilPattern ? 'text-amber-600' : 'text-green-600'}`} />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-800">Clinical Alert Summary</h2>
+              <p className="text-sm text-gray-400">Interpretation cues based on the current WBC pattern</p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+              <p className="text-xs font-bold uppercase tracking-wide text-amber-700 mb-2">Possible Infection Alert</p>
+              <p className="text-sm leading-relaxed text-amber-900">
+                Abnormal WBC pattern suggests possible infection. Consider additional diagnostic tests if clinically indicated.
+              </p>
+            </div>
+
+            <div className={`rounded-2xl border p-5 ${severePattern ? 'border-red-200 bg-red-50' : lowNeutrophilPattern ? 'border-orange-200 bg-orange-50' : 'border-green-200 bg-green-50'}`}>
+              <p className={`text-xs font-bold uppercase tracking-wide mb-2 ${severePattern ? 'text-red-700' : lowNeutrophilPattern ? 'text-orange-700' : 'text-green-700'}`}>
+                Possible Sepsis Risk
+              </p>
+              <p className="text-sm leading-relaxed text-gray-700">
+                {lowNeutrophilPattern
+                  ? 'Low neutrophil levels can reduce the body’s ability to fight infection. If fever is present, urgent medical evaluation is recommended.'
+                  : 'Monitor for severe infection risk. If fever and severe neutropenia are present, this becomes a medical emergency.'}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-purple-200 bg-purple-50 p-5">
+              <p className="text-xs font-bold uppercase tracking-wide text-purple-700 mb-2">Leukemia Screening Alert</p>
+              <p className="text-sm leading-relaxed text-purple-900">
+                Abnormal WBC distribution detected. Further hematological investigation is recommended to rule out serious underlying disease.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 leading-relaxed">
+            <p className="font-semibold text-gray-800 mb-1">Clinical note</p>
+            <p>
+              Neutropenia means a low neutrophil count. Severe neutropenia with fever is a life-threatening emergency and may require action within one hour.
+            </p>
+          </div>
+        </div>
 
         {/* ── PRIMARY RESULT CARD ── */}
         <div className="pro-surface rounded-3xl p-5 sm:p-7 animate-slideUp">
@@ -188,15 +385,25 @@ function Results({ results, imagePreview, onNewAnalysis }: ResultsProps) {
                         </span>
                       </td>
                       <td className="px-5 py-3.5">
-                        {normal ? (
-                          <span className="inline-flex items-center gap-1 text-green-600 font-bold text-xs">
-                            <CheckCircle className="w-3.5 h-3.5" /> Normal
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-orange-600 font-bold text-xs">
-                            <AlertCircle className="w-3.5 h-3.5" /> Review
-                          </span>
-                        )}
+                        {(() => {
+                          const status = getStatus(cell.percentage, cell.cell_type);
+                          let bgColor = 'bg-green-100 text-green-700';
+                          let icon = '✓';
+                          
+                          if (status === 'high') {
+                            bgColor = 'bg-red-100 text-red-700';
+                            icon = '↑';
+                          } else if (status === 'low') {
+                            bgColor = 'bg-yellow-100 text-yellow-700';
+                            icon = '↓';
+                          }
+                          
+                          return (
+                            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${bgColor}`}>
+                              {icon} {status}
+                            </span>
+                          );
+                        })()}
                       </td>
                     </tr>
                   );

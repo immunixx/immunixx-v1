@@ -78,10 +78,14 @@ function History({ onBack, onViewResult }: HistoryProps) {
                   <Microscope className="w-7 h-7 text-green-600" />
                 </div>
 
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="flex flex-col">
                     <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-0.5">Patient ID</span>
                     <span className="font-bold text-gray-800 truncate">{record.patient_id}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-0.5">Patient Name</span>
+                    <span className="font-semibold text-gray-700 truncate">{record.patient_details?.name ?? 'Not provided'}</span>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-0.5">Date & Time</span>

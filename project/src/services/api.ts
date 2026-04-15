@@ -1,4 +1,4 @@
-import { AnalysisResult } from '../types';
+import { AnalysisResult, PatientDetails } from '../types';
 
 // ─── Simulated offline AI analysis ──────────────────────────────────────────
 
@@ -72,7 +72,10 @@ function randomConfidence(base: number, rnd: () => number) {
   return Math.min(0.99, Math.max(0.72, base + delta));
 }
 
-export const analyzeImage = async (file: File): Promise<AnalysisResult> => {
+export const analyzeImage = async (
+  file: File,
+  patientDetails?: PatientDetails
+): Promise<AnalysisResult> => {
   // Simulate network / model processing latency
   await new Promise(r => setTimeout(r, 3200));
 
@@ -115,6 +118,7 @@ export const analyzeImage = async (file: File): Promise<AnalysisResult> => {
     patient_id,
     timestamp,
     image_path: '',
+    patient_details: patientDetails,
     dominant_type: WBC_TYPES[dominantIdx].cell_type,
     dominant_confidence: cell_types[dominantIdx].confidence,
     total_count: totalCount,
